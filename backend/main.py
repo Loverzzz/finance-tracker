@@ -12,21 +12,27 @@ from datetime import timedelta
 import models, schemas, crud, auth, database, logic
 from pydantic import BaseModel
 
-models.Base.metadata.create_all(bind=database.engine)
+try:
+    models.Base.metadata.create_all(bind=database.engine)
+except Exception as e:
+    print(f"Database init error: {e}")
 
 app = FastAPI(title="Finance Tracker API")
 
 @app.on_event("startup")
 def startup_event():
-    db = database.SessionLocal()
-    admin_user = os.getenv("FINTRACK_USER", "reynaldstar")
-    admin_pass = os.getenv("FINTRACK_PASS", "reynald123")
-    
-    if not crud.get_user_by_username(db, admin_user):
-        user_data = schemas.UserCreate(username=admin_user, email="admin@local.host", password=admin_pass)
-        crud.create_user(db, user_data)
-        print(f"[*] Default private admin user '{admin_user}' verified.")
-    db.close()
+    try:
+        db = database.SessionLocal()
+        admin_user = os.getenv("FINTRACK_USER", "reynaldstar")
+        admin_pass = os.getenv("FINTRACK_PASS", "reynald123")
+        
+        if not crud.get_user_by_username(db, admin_user):
+            user_data = schemas.UserCreate(username=admin_user, email="admin@local.host", password=admin_pass)
+            crud.create_user(db, user_data)
+            print(f"[*] Default private admin user '{admin_user}' verified.")
+        db.close()
+    except Exception as e:
+        print(f"Startup user seeding error: {e}")
 
 app.add_middleware(
     CORSMiddleware,
