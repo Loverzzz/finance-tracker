@@ -130,5 +130,7 @@ def get_top_expenses_endpoint(limit: int = 5, db: Session = Depends(get_db), cur
 def get_monthly_income_endpoint(year: int, month: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     return logic.get_monthly_income(db, current_user.id, month, year)
 
-frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
-app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+if not os.getenv("VERCEL"):
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
+    if os.path.exists(frontend_dir):
+        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")

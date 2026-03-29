@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/login", "dest": "/backend/main.py" },
+    { "src": "/users/me", "dest": "/backend/main.py" },
+    { "src": "/settings", "dest": "/backend/main.py" },
+    { "src": "/transactions/?(.*)", "dest": "/backend/main.py" },
+    { "src": "/budgets/?(.*)", "dest": "/backend/main.py" },
+    { "src": "/dashboard/(.*)", "dest": "/backend/main.py" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
+}
