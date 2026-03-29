@@ -1,0 +1,17 @@
+{
+  "name": "FinTrack",
+  "short_name": "FinTrack",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "Personal Finance Tracker",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10005/10005166.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

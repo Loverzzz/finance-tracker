@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FinTrack - Personal Finance Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/10005/10005166.png">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="auth-container" class="glass-panel">
+        <h2>Welcome to FinTrack</h2>
+
+        <form id="auth-form" onsubmit="handleAuth(event)">
+            <input type="text" id="username" placeholder="Username" required>
+
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit" class="primary-btn w-100">Let's Go</button>
+        </form>
+        <p id="auth-error" class="error-msg"></p>
+    </div>
+
+    <div id="dashboard-container" style="display: none;">
+        <header>
+            <div class="brand">FinTrack <i class="fa-solid fa-wallet"></i></div>
+            <div class="header-actions">
+                <button class="primary-btn pulse-btn" onclick="openTransactionModal()"><i class="fa-solid fa-plus"></i> New Transaction</button>
+                <button class="icon-btn" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Balance Section -->
+            <section class="card balance-card">
+                <h3><i class="fa-solid fa-scale-balanced"></i> Your Balances</h3>
+                <div class="balance-grid">
+                    <div class="balance-item total">
+                        <span class="label">Total Money</span>
+                        <h2 id="balance-total">Rp 0</h2>
+                    </div>
+                    <div class="balance-item sub-balance">
+                        <span class="label">Mandiri Bank</span>
+                        <h3 id="balance-mandiri">Rp 0</h3>
+                    </div>
+                    <div class="balance-item sub-balance">
+                        <span class="label">Cash</span>
+                        <h3 id="balance-cash">Rp 0</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Budget Info Section -->
+            <section class="card budget-card">
+                <h3><i class="fa-solid fa-chart-pie"></i> Monthly Budget</h3>
+                <div class="budget-status">Status: <span id="budget-status-badge" class="badge">Checking...</span></div>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+                <button class="small-btn mt-10" onclick="openBudgetModal()">Set Monthly Goals</button>
+            </section>
+
+            <!-- Daily & Mood Section -->
+            <section class="card daily-card">
+                <h3><i class="fa-solid fa-calendar-day"></i> Daily Overview</h3>
+                <div class="daily-info">
+                    <div class="daily-allowance">
+                        <span class="label">Remaining Daily Budget</span>
+                        <h3 id="daily-budget-val">Rp 0</h3>
+                        <p class="subtext"><span id="days-left-val">0</span> days left this month</p>
+                    </div>
+                    <div class="mood-tracker">
+                        <span class="label">Today's Mood</span>
+                        <div class="mood-emojis" style="cursor: default;">
+                            <span class="mood-btn">😡</span>
+                            <span class="mood-btn">😐</span>
+                            <span class="mood-btn">😎</span>
+                        </div>
+                        <h4 id="current-mood-val">--</h4>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Top Expenses -->
+            <section class="card expenses-card">
+                <h3><i class="fa-solid fa-fire"></i> Top Expenses</h3>
+                <ul id="top-expenses-list" class="expenses-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </section>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="card history-card" style="grid-column: span 12;">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Transactions</h3>
+                <ul id="recent-transactions-list" class="expenses-list">
+                    <!-- Populated by JS -->
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div id="transaction-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <span class="close" onclick="closeTransactionModal()">&times;</span>
+            <h2 id="transaction-modal-title">Record Transaction</h2>
+            <form id="transaction-form" onsubmit="submitTransaction(event)">
+                <input type="hidden" id="t_id">
+                <div class="form-group">
+                    <label>Tipe Kirim</label>
+                    <select id="t_tipe_kirim" required>
+                        <option value="Pengeluaran">Pengeluaran</option>
+                        <option value="Pemasukan">Pemasukan</option>
+                        <option value="Transfer">Transfer Mandiri <-> Cash</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tanggal Struk</label>
+                        <input type="date" id="t_tanggal_struk" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Toko / Sumber</label>
+                        <input type="text" id="t_toko" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Items</label>
+                        <input type="number" id="t_total_item" value="1" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="t_category">
+                            <option value="Needs">Needs</option>
+                            <option value="Wants">Wants</option>
+                            <option value="Savings">Savings</option>
+                            <option value="Income">Income (Pemasukan)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Method</label>
+                        <select id="t_method">
+                            <option value="Mandiri">Mandiri</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (Rp)</label>
+                        <input type="number" id="t_amount" required>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn w-100 mt-10">Save Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Goals Modal -->
+    <div id="budget-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <span class="close" onclick="closeBudgetModal()">&times;</span>
+            <h2>Set Budget Goals</h2>
+            <form id="budget-form" onsubmit="submitBudget(event)">
+                <div class="form-group">
+                    <label>Month / Year</label>
+                    <div class="form-grid">
+                        <input type="number" id="b_month" min="1" max="12" placeholder="Month" required>
+                        <input type="number" id="b_year" placeholder="Year" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Budget Limit Mode</label>
+                    <select id="b_mode">
+                        <option value="amount">Exact Amount (Rp)</option>
+                        <option value="percentage">Percentage (%) of Total Monthly Income</option>
+                    </select>
+                </div>
+                <div id="b_income_info" style="display:none; color: #38bdf8; font-size: 0.9em; margin-bottom: 15px; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;">
+                    Total Income for selected month: <strong id="b_total_income_val" data-val="0">Rp 0</strong>
+                </div>
+                <div class="form-group">
+                    <label for="b_needs">Needs Target (Rp)</label>
+                    <input type="number" id="b_needs" required>
+                </div>
+                <div class="form-group">
+                    <label for="b_wants">Wants Target (Rp)</label>
+                    <input type="number" id="b_wants" required>
+                </div>
+                <div class="form-group">
+                    <label for="b_savings">Savings Target (Rp)</label>
+                    <input type="number" id="b_savings" required>
+                </div>
+                <button type="submit" class="primary-btn w-100 mt-10">Save Goals</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
